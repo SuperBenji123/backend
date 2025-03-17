@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS 
 from agent_system import process_query
 
 app = Flask(__name__)
+
+CORS(app, resources={r"/*": {"origins": "https://superbenji-webapp.vercel.app"}})
 
 @app.route('/')
 def hello_world():
