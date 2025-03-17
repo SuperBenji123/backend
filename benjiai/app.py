@@ -31,4 +31,4 @@ def query_agent():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='3.11.217.51', port=5000)
+    app.run(host='0.0.0.0', port=5000)
