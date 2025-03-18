@@ -34,9 +34,12 @@ def query_agent():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/agent/supervisor', methods=['POST'])
-def query_supervisor(payload):
+def query_supervisor():
+    payload = request.get_json()  # Extract JSON data from the request
+
     return jsonify({
-        "Status": "Query Received"
+        "Status": "Query Received",
+        "ReceivedData": payload  # Echo back the received payload for debugging
     })
     
 
