@@ -33,7 +33,7 @@ def query_agent():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('agent/supervisor', methods=['POST'])
+@app.route('/agent/supervisor', methods=['POST'])
 def query_supervisor(payload):
     return jsonify({
         "Status": "Query Received"
