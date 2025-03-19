@@ -1,6 +1,10 @@
 from langchain_openai import ChatOpenAI
 from langgraph_supervisor import create_supervisor
 from langgraph.prebuilt import create_react_agent
+
+from AssistantManager import create_generation_assistant, retrieve_assistant, modify_system_prompt, get_all_messages, get_most_recent_message, delete_assistant, create_thread, retrieve_thread, create_user_message, create_system_message, run_assistant_on_thread
+
+import requests
 from dotenv import load_dotenv
 import os
 import json
@@ -62,6 +66,23 @@ def analyze_sentiment(text: str) -> str:
         return "Negative sentiment detected in the text."
     else:
         return "Neutral sentiment detected in the text."
+    
+def send_response_to_frontend(response_data: dict):
+    """Send the response data to the frontend via a POST request."""
+    frontend_url = "http://localhost:3000/api/response"  # Adjust this URL as per your React app
+
+    try:
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(frontend_url, json=response_data, headers=headers)
+        
+        if response.status_code == 200:
+            print("Response successfully sent to frontend.")
+        else:
+            print(f"Failed to send response. Status code: {response.status_code}, Response: {response.text}")
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Error sending response to frontend: {e}")
+
 
 # Create specialized agents
 research_agent = create_react_agent(
@@ -96,6 +117,18 @@ supervisor = create_supervisor(
         "For questions about information, web searches, or sentiment analysis, use research_expert. "
         "For tasks related to creating or drafting emails, use email_expert. "
         "Make sure to route each query to the appropriate expert."
+    )
+)
+
+email_training_agent = create_react_agent(
+    model=model,
+    tools=[web_search, analyze_sentiment],
+    name="research_expert",
+    prompt=(
+        "You are a world-class researcher with access to web search and sentiment analysis tools. "
+        "You can find information on the web and analyze the sentiment of text. "
+        "When asked to research something, always use the web_search tool. "
+        "When asked about emotions or feelings in text, use the analyze_sentiment tool."
     )
 )
 
