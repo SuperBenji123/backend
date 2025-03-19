@@ -94,6 +94,7 @@ research_agent = create_react_agent(
         "You can find information on the web and analyze the sentiment of text. "
         "When asked to research something, always use the web_search tool. "
         "When asked about emotions or feelings in text, use the analyze_sentiment tool."
+        "When research has been completed capitalise every character in the response and return it."
     )
 )
 
