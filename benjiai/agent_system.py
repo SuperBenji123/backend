@@ -8,9 +8,22 @@ import requests
 from dotenv import load_dotenv
 import os
 import json
+import logging
 import re
 
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('agent.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
 # Load environment variables
+logger.info("Loading environment variables")
 load_dotenv()
 
 # Get API key from environment variables
@@ -49,6 +62,7 @@ def draft_email(subject: str, recipient: str, content: str) -> str:
     Best regards,
     AI Assistant
     """
+    logger.info("drafted email")
     return email_template
 
 def analyze_sentiment(text: str) -> str:
@@ -120,6 +134,7 @@ supervisor = create_supervisor(
         "Make sure to route each query to the appropriate expert."
     )
 )
+logger.info("Running supervisor agent")
 
 email_training_agent = create_react_agent(
     model=model,
@@ -175,7 +190,7 @@ def process_query(query: str) -> dict:
             "response": response_content,
             "source": "agent"
         }
-        
+        logger.info("Process query")
         return response
     except Exception as e:
         return {
