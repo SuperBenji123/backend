@@ -705,7 +705,9 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
 
     try:
         logs = []
-        logs.append(users[user_id][1])
+        for logmessages in users[user_id][1]:
+            logs.append(logmessages)
+        
 
         # Classify the query to determine intent
         intent = classify_user_intent(query)
