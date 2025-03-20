@@ -700,7 +700,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
     start_time = time.time()
 
     if user_id not in users:
-        users[user_id] = [[{}],[]]  # You can also use users.update({user_id: []})
+        users[user_id] = [[{"role": "bot", "content": "Are you ready?"}],[]]
         logger.info(f"User added to memory")
 
     try:
@@ -717,7 +717,9 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
         # Prepare messages with history if provided
         messages = []
-        messages.append(users[user_id][0])
+        for chats in users[user_id][0]{
+            messages.append(chats)
+        }
         logger.error(messages)
         
         # Add current query
