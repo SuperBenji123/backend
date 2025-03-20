@@ -719,11 +719,10 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         messages = []
         for chats in users[user_id][0]:
             messages.append(chats)
-        logger.error(messages)
         
         # Add current query
         messages.append({"role": "user", "content": query})
-        logger.error(messages)
+        
         
         # Process via supervisor workflow
         logger.info("Invoking supervisor workflow")
@@ -754,12 +753,12 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
 
         #Adds agent response message to messages
         messages.append(response_content)
+        logger.error(messages)
+        logger.error(logs)
         
         #replacing messages and logs with up to date versions of each
         users[user_id][0] = messages
         users[user_id][1] = logs
-
-        logger.error(logs, messages, users)
 
 
         logger.info(f"Query processed successfully in {response['processing_time']} seconds")
