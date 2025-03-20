@@ -717,9 +717,8 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
         # Prepare messages with history if provided
         messages = []
-        for chats in users[user_id][0]{
+        for chats in users[user_id][0]:
             messages.append(chats)
-        }
         logger.error(messages)
         
         # Add current query
