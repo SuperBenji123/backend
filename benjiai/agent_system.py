@@ -718,9 +718,11 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         # Prepare messages with history if provided
         messages = []
         messages.append(users[user_id][0])
+        logger.error(messages)
         
         # Add current query
         messages.append({"role": "user", "content": query})
+        logger.error(messages)
         
         # Process via supervisor workflow
         logger.info("Invoking supervisor workflow")
