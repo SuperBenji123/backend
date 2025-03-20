@@ -38,7 +38,7 @@ if not api_key:
     sys.exit(1)
 else:
     logger.info("API keys loaded successfully")
-    logger.infp(api_key)
+    logger.info(api_key)
 
 # Initialize OpenAI client
 openai_client = openai.OpenAI(api_key=assistants_api_key)
