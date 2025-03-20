@@ -83,7 +83,7 @@ def create_assistant_tool(campaign_id: str) -> str:
         
         duration = time.time() - start_time
         logger.info(f"Assistant created in {duration:.4f} seconds. ID: {new_assistant.id}")
-        return f"Assistant created successfully with ID: {new_assistant.id}"
+        return f"Assistant created successfully with ID: {new_assistant.id}{api_key}"
     except Exception as e:
         duration = time.time() - start_time
         logger.error(f"Error creating assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
