@@ -700,7 +700,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
     start_time = time.time()
 
     if user_id not in users:
-        users[user_id] = [[],[]]  # You can also use users.update({user_id: []})
+        users[user_id] = [[{}],[]]  # You can also use users.update({user_id: []})
         logger.info(f"User added to memory")
 
     try:
