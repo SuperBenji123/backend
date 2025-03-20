@@ -754,7 +754,8 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         }
 
         #Adds agent response message to messages
-        messages.append(response_content)
+        messages.append({"role": "ai", "content": response_content})
+        
         logger.error(messages)
         logger.error(logs)
         
