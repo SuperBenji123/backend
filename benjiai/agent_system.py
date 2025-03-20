@@ -28,6 +28,11 @@ logger = logging.getLogger(__name__)
 logger.info("Loading environment variables")
 load_dotenv()
 
+#TEMP_DATABASE
+users = {
+    "default_user_id": ["Hello, bot message", "Hey there, user message"]
+}
+
 # Get API keys from environment variables
 api_key = os.getenv("OPENAI_API_KEY")
 assistants_api_key = os.getenv("OPENAI_ASSISTANTS_API_KEY", api_key)  # Use main API key as fallback
@@ -693,8 +698,15 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
     """
     logger.info(f"Processing query for user {user_id}: '{query[:50]}...' (truncated)")
     start_time = time.time()
-    
+
+    if user_id not in users:
+        users[user_id] = [[],[]]  # You can also use users.update({user_id: []})
+        logger.info(f"User added to memory")
+
     try:
+        logs = []
+        logs.append(users[user_id][1])
+
         # Classify the query to determine intent
         intent = classify_user_intent(query)
         logger.info(f"Query classified with intent: {intent}")
@@ -705,9 +717,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
         # Prepare messages with history if provided
         messages = []
-        if history:
-            logger.info(f"Using conversation history with {len(history)} messages")
-            messages.extend(history[-5:])  # Use last 5 messages for context
+        messages.append(users[user_id][0])
         
         # Add current query
         messages.append({"role": "user", "content": query})
@@ -715,6 +725,9 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         # Process via supervisor workflow
         logger.info("Invoking supervisor workflow")
         result = workflow.invoke({"messages": messages})
+
+        #Any Logs we want to remember we do this 
+        logs.append("Invoking supervisor workflow")
         
         # Extract the response content from the result
         response_content = ""
@@ -735,7 +748,17 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
             "thread_id": thread_id,
             "processing_time": round(time.time() - start_time, 4)
         }
+
+        #Adds agent response message to messages
+        messages.append(response_content)
         
+        #replacing messages and logs with up to date versions of each
+        users[user_id][0] = messages
+        users[user_id][1] = logs
+
+        logger.error(logs, messages, users)
+
+
         logger.info(f"Query processed successfully in {response['processing_time']} seconds")
         return response
     except Exception as e:
