@@ -290,7 +290,7 @@ def run_email_assistant_on_thread_tool(assistant_id: str, thread_id: str) -> str
         duration = time.time() - start_time
         logger.info(f"Assistant response received in {duration:.4f} seconds")
         logger.error(f"Response content: {message_content[:100]}...")
-        email = message_content
+        global email = message_content
 
         logger.error(f"{email}")
         
