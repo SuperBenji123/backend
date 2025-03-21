@@ -499,7 +499,7 @@ except Exception as e:
 logger.info("Creating supervisor workflow")
 try:
     supervisor = create_supervisor(
-        [assistant_mgmt_agent, message_generation_mgmt_agent, email_agent],
+        [assistant_mgmt_agent, message_generation_mgmt_agent],
         model=model,
         prompt=(
             "You are a team supervisor managing three experts:\n"
