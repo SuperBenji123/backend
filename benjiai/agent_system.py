@@ -646,7 +646,6 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
     if user_id not in users:
         assistant_id = extract_assistant_id(create_assistant_tool(user_id))
         thread_id = extract_thread_id(create_email_generation_thread_tool())
-        users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
         users[user_id] = [[{"role": "ai", "content": "Are you ready?"}],[],assistant_id, thread_id]
         
@@ -674,6 +673,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         assistant_id = users[user_id][2]
         thread_id = users[user_id][3]
         logger.info(f"{assistant_id} and {thread_id}")
+        messages.append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
         
         
