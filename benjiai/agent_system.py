@@ -339,7 +339,7 @@ def classify_user_intent(text: str) -> str:
         
     Returns:
         The classified intent: "assistant_management", "email_creation", 
-        "system_improvement", or "general_conversation"
+        "system_improvement", "prospecting" or "general_conversation"
     """
     logger.debug(f"Classifying intent for query: '{text[:50]}...' (truncated)")
     start_time = time.time()
@@ -371,6 +371,11 @@ def classify_user_intent(text: str) -> str:
         "be more", "sound more", "write more", "different tone",
         "feedback", "suggestion", "preference", "like it when you"
     ]
+
+    # Prospecting Keywords
+    prospecting_keywords = [
+        "prospect", "prospects", "contacts", "people"
+    ]
     
     # Check for assistant management intent
     if any(keyword in text_lower for keyword in assistant_mgmt_keywords):
@@ -381,6 +386,9 @@ def classify_user_intent(text: str) -> str:
     # Check for system improvement intent
     elif any(keyword in text_lower for keyword in improvement_keywords):
         intent = "system_improvement"
+    # Check for prospecting intent
+    elif any(keyword in text_lower for keyword in prospecting_keywords):
+        intent = "prospecting"
     # Default intent
     else:
         intent = "general_conversation"
