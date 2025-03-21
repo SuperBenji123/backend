@@ -60,89 +60,6 @@ except Exception as e:
 # In-memory storage for user contexts
 conversation_context = {}
 
-# ======= Assistant Manager Functions as Tools =======
-
-def create_assistant_tool(campaign_id: str) -> str:
-    """
-    Creates an assistant using the Campaign ID.
-    
-    Args:
-        campaign_id: The ID of the campaign to create an assistant for
-        
-    Returns:
-        A string with the assistant ID or error message
-    """
-    logger.info(f"Creating assistant for campaign: {campaign_id}")
-    start_time = time.time()
-    
-    try:
-        # Create the assistant using the OpenAI API
-        new_assistant = openai_client.beta.assistants.create(
-            instructions=(
-                "You are an email writing assistant that will work with a client to understand "
-                "their style and how they would like their emails to look."
-            ),
-            name=f"{campaign_id} Brain",
-            model="gpt-4o"
-        )
-        
-        duration = time.time() - start_time
-        logger.info(f"Assistant created in {duration:.4f} seconds. ID: {new_assistant.id}")
-        return f"Assistant created successfully with ID: {new_assistant.id}{api_key}"
-    except Exception as e:
-        duration = time.time() - start_time
-        logger.error(f"Error creating assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
-        return f"Error creating assistant: {str(e)}"
-
-def create_generation_assistant_tool(campaign_id: str) -> str:
-    """
-    Creates a specialized assistant for generating emails and LinkedIn messages.
-    
-    Args:
-        campaign_id: The ID of the campaign to create an assistant for
-        
-    Returns:
-        A string with the assistant ID or error message
-    """
-    logger.info(f"Creating generation assistant for campaign: {campaign_id}")
-    start_time = time.time()
-    
-    try:
-        instructions = (
-            "You generate Emails and LinkedIn messages for [first_name], the [job_title] at [company]. "
-            "You will then be asked to generate one email which will be email number [email_number] of "
-            "a four-step sequence. Here's an overview of what [company] does: [company_overview]. "
-            "And here's the product/solution/event [company] is promoting: [product_offered]. "
-            "Start emails/messages with a brief reference to the content provided which you found interesting. "
-            "Use the reference to show that we are interested in them, have researched their company, and "
-            "understand how we can help them. Ensure the comment is positive, short, succinct, and avoids flattery. "
-            "End the paragraph by saying it's interesting, congratulating them, or noting something specific "
-            "that they said. Keep this section short, limited to 1-7 words. "
-            "Start a new paragraph mentioning an exciting opportunity. Explain that we're hosting a networking "
-            "lunch in [current_month+2], bringing together [types of leaders] in [nearest city to [LOCATION]]. "
-            "Highlight that it's a great chance to meet other professionals and delve into 'Scaling growth in 2025'. "
-            "Conclude with a brief call to action, encouraging [contact_first_name] to let you know if they are "
-            "interested in joining, so you can send details. "
-            "Start all emails/messages with 'Hi [contact_first_name]' and end with 'Best, [first_name]'. "
-            "Ensure messages are written in [language]. Do not include headings, subject lines, or titles. "
-            "Use a professional but confident tone. Keep LinkedIn messages shorter and less formal. "
-            "Sequence-specific instructions: [email_number_text]."
-        )
-        
-        new_assistant = openai_client.beta.assistants.create(
-            instructions=instructions,
-            name=f"{campaign_id} Message Generator",
-            model="gpt-4o"
-        )
-        
-        duration = time.time() - start_time
-        logger.info(f"Generation assistant created in {duration:.4f} seconds. ID: {new_assistant.id}")
-        return f"Generation assistant created successfully with ID: {new_assistant.id}"
-    except Exception as e:
-        duration = time.time() - start_time
-        logger.error(f"Error creating generation assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
-        return f"Error creating generation assistant: {str(e)}"
-
 def retrieve_assistant_tool(assistant_id: str) -> str:
     """
     Retrieves information about an assistant.
@@ -233,7 +150,7 @@ def delete_assistant_tool(assistant_id: str) -> str:
         logger.error(f"Error deleting assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error deleting assistant: {str(e)}"
 
-def create_thread_tool() -> str:
+def create_email_generation_thread_tool() -> str:
     """
     Create a new thread for conversation with an assistant.
     
@@ -254,7 +171,7 @@ def create_thread_tool() -> str:
         logger.error(f"Error creating thread after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error creating thread: {str(e)}"
 
-def send_message_to_thread_tool(thread_id: str, message_content: str, role: str = "user") -> str:
+def send_message_to_email_generation_thread_tool(thread_id: str, message_content: str, role: str = "user") -> str:
     """
     Send a message to a thread.
     
@@ -284,7 +201,7 @@ def send_message_to_thread_tool(thread_id: str, message_content: str, role: str 
         logger.error(f"Error sending {role} message after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error sending {role} message: {str(e)}"
 
-def run_assistant_on_thread_tool(assistant_id: str, thread_id: str) -> str:
+def run_email_assistant_on_thread_tool(assistant_id: str, thread_id: str) -> str:
     """
     Run an assistant on a thread and get the response.
     
@@ -343,7 +260,7 @@ def run_assistant_on_thread_tool(assistant_id: str, thread_id: str) -> str:
         logger.error(f"Error running assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error running assistant: {str(e)}"
 
-def get_messages_from_thread_tool(thread_id: str) -> str:
+def get_messages_from_email_generation_thread_tool(thread_id: str) -> str:
     """
     Get all messages from a thread.
     
@@ -377,38 +294,6 @@ def get_messages_from_thread_tool(thread_id: str) -> str:
         duration = time.time() - start_time
         logger.error(f"Error getting messages after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error getting messages: {str(e)}"
-
-# ======= Email Writing Tool =======
-
-def draft_email_tool(recipient: str, subject: str, content: str) -> str:
-    """
-    Draft an email with the given subject, recipient, and content.
-    
-    Args:
-        recipient: Email recipient
-        subject: Email subject
-        content: Email content
-        
-    Returns:
-        A formatted email string
-    """
-    logger.info(f"Drafting email to: {recipient}")
-    start_time = time.time()
-    
-    email_template = f"""
-To: {recipient}
-Subject: {subject}
-
-{content}
-
-Best regards,
-AI Assistant
-"""
-    
-    duration = time.time() - start_time
-    logger.info(f"Email drafted in {duration:.4f} seconds")
-    
-    return email_template
 
 # ======= Utility Functions =======
 
@@ -471,6 +356,7 @@ def classify_user_intent(text: str) -> str:
     logger.debug(f"Intent classification completed in {duration:.4f} seconds. Intent: {intent}")
     return intent
 
+#CHANGE THIS TO JUST TAKE AN INPUT FROM THE FRONTEND OR FROM THE DATABASE
 def extract_assistant_id(text: str) -> Optional[str]:
     """Extract assistant ID from text if present"""
     logger.debug(f"Extracting assistant ID from text: '{text[:50]}...' (truncated)")
@@ -493,6 +379,7 @@ def extract_assistant_id(text: str) -> Optional[str]:
     logger.debug(f"No assistant ID found in {duration:.4f} seconds")
     return None
 
+#CHANGE THIS TO JUST TAKE AN INPUT FROM THE FRONTEND OR FROM THE DATABASE
 def extract_campaign_id(text: str) -> str:
     """Extract or generate campaign ID from text"""
     logger.debug(f"Extracting campaign ID from text: '{text[:50]}...' (truncated)")
@@ -527,6 +414,7 @@ def extract_campaign_id(text: str) -> str:
     logger.debug(f"Default campaign ID generated in {duration:.4f} seconds: {campaign_id}")
     return campaign_id
 
+#CHANGE THIS TO JUST TAKE AN INPUT FROM THE FRONTEND OR FROM THE DATABASE
 def extract_thread_id(text: str) -> Optional[str]:
     """Extract thread ID from text if present"""
     logger.debug(f"Extracting thread ID from text: '{text[:50]}...' (truncated)")
@@ -549,29 +437,6 @@ def extract_thread_id(text: str) -> Optional[str]:
     logger.debug(f"No thread ID found in {duration:.4f} seconds")
     return None
 
-def send_response_to_frontend(response_data: Dict[str, Any]) -> bool:
-    """Send the response data to the frontend via a POST request."""
-    logger.info("Sending response to frontend")
-    start_time = time.time()
-    
-    try:
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(frontend_url, json=response_data, headers=headers)
-        
-        if response.status_code == 200:
-            duration = time.time() - start_time
-            logger.info(f"Response successfully sent to frontend in {duration:.4f} seconds")
-            return True
-        else:
-            duration = time.time() - start_time
-            logger.error(f"Failed to send response after {duration:.4f} seconds. Status code: {response.status_code}, Response: {response.text}")
-            return False
-    
-    except requests.exceptions.RequestException as e:
-        duration = time.time() - start_time
-        logger.error(f"Error sending response to frontend after {duration:.4f} seconds: {str(e)}", exc_info=True)
-        return False
-
 # ======= Create Agents =======
 
 # Create assistant management agent
@@ -580,8 +445,6 @@ try:
     assistant_mgmt_agent = create_react_agent(
         model=model,
         tools=[
-            create_assistant_tool, 
-            create_generation_assistant_tool,
             retrieve_assistant_tool,
             modify_system_prompt_tool,
             delete_assistant_tool
@@ -593,8 +456,6 @@ try:
             "When working with user inputs, analyze their needs and preferences. "
             "\n\n"
             "Use these tools based on user requests:\n"
-            "- create_assistant_tool: When a user wants to create a basic email writing assistant\n"
-            "- create_generation_assistant_tool: When a user wants a specialized assistant for generating marketing emails and messages\n"
             "- retrieve_assistant_tool: When a user wants information about an existing assistant\n"
             "- modify_system_prompt_tool: When a user wants to update an assistant's instructions\n"
             "- delete_assistant_tool: When a user wants to remove an assistant\n"
@@ -606,26 +467,27 @@ except Exception as e:
     raise
 
 # Create thread management agent
-logger.info("Creating thread management agent")
+logger.info("Creating message generation management agent")
 try:
-    thread_mgmt_agent = create_react_agent(
+    message_generation_mgmt_agent = create_react_agent(
         model=model,
         tools=[
-            create_thread_tool,
-            send_message_to_thread_tool,
-            run_assistant_on_thread_tool,
-            get_messages_from_thread_tool
+            create_email_generation_thread_tool,
+            send_message_to_email_generation_thread_tool,
+            run_email_assistant_on_thread_tool,
+            get_messages_from_email_generation_thread_tool
         ],
         name="thread_manager",
         prompt=(
             "You are an expert in managing OpenAI assistant threads and interactions. "
+            "You use these threads to create emails for the user"
             "You can create threads, send messages to threads, run assistants on threads, and get messages from threads. "
             "\n\n"
             "Use these tools based on user requests:\n"
-            "- create_thread_tool: When a user wants to start a new conversation thread\n"
-            "- send_message_to_thread_tool: When a user wants to send a message to a thread\n"
-            "- run_assistant_on_thread_tool: When a user wants to get an assistant's response on a thread\n"
-            "- get_messages_from_thread_tool: When a user wants to see the history of messages in a thread\n"
+            "- create_email_generation_thread_tool: When a user wants to start a new conversation thread\n"
+            "- send_message_to_email_generation_thread_tool: When a user wants to send a message to a thread\n"
+            "- run_email_assistant_on_thread_tool: When a user or agent wants to generate an email on a thread\n"
+            "- get_messages_from_email_generation_thread_tool: When a user wants to see the history of messages in a thread\n"
         )
     )
     logger.info("Thread management agent created successfully")
@@ -655,12 +517,12 @@ except Exception as e:
 logger.info("Creating supervisor workflow")
 try:
     supervisor = create_supervisor(
-        [assistant_mgmt_agent, thread_mgmt_agent, email_agent],
+        [assistant_mgmt_agent, message_generation_mgmt_agent, email_agent],
         model=model,
         prompt=(
             "You are a team supervisor managing three experts:\n"
             "1. The assistant_manager handles creating, updating, and deleting OpenAI assistants\n"
-            "2. The thread_manager manages conversation threads and interactions with assistants\n"
+            "2. The thread_manager manages conversation threads and interactions with email generation assistants\n"
             "3. The email_expert specializes in drafting professional emails\n\n"
             "For tasks related to creating or managing OpenAI assistants, use assistant_manager.\n"
             "For tasks related to conversation threads and interactions with assistants, use thread_manager.\n"
