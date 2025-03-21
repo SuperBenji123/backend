@@ -675,7 +675,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
         # Process via supervisor workflow
         logger.info("Invoking supervisor workflow")
-        result = workflow.invoke({"messages": messages, "logs": logs, "assistant_id": })
+        result = workflow.invoke({"messages": messages, "logs": logs, "assistant_id": assistant_id, "thread_id": thread_id})
 
         #Any Logs we want to remember we do this 
         logs.append("Invoking supervisor workflow")
