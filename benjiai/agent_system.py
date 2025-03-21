@@ -298,7 +298,7 @@ def get_messages_from_email_generation_thread_tool(thread_id: str) -> str:
 
 
 #Find Prospects Tool
-def find_prospects_tool(prompt: str) -> str:
+def find_prospects_tool(prompt: str) -> dict:
     """
     Call Make Webhook to retrieve prospects for a given client.
     
@@ -306,27 +306,29 @@ def find_prospects_tool(prompt: str) -> str:
         prompt: User inputted prompt to send to the webhook
         
     Returns:
-        A dictionary made up of a series of prospects and the information about them
+        A dictionary containing a series of prospects and the information about them
     """
     logger.info(f"Finding prospects based on this prompt: '{prompt[:50]}...' (truncated)")
     start_time = time.time()
     
+    url = "https://hook.eu2.make.com/ytq23ywoyd4x2ve23fjdxhc1n1wluj6a"
+    headers = {"Content-Type": "application/json"}
+    payload = {"prompt": prompt}
+    
     try:
-        url = "https://hook.eu2.make.com/ytq23ywoyd4x2ve23fjdxhc1n1wluj6a"
-        headers = {"Content-Type": "application/json"}
-        payload = {"prompt": prompt}
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()  # Raise an error for HTTP failure responses (4xx, 5xx)
+        data = response.json()
         
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers) as response:
-                data = await response.json()
-                duration = time.time() - start_time
-                logger.info(f"Prospects retrieved successfully in {duration:.4f} seconds")
-                return data
-        
-    except Exception as e:
         duration = time.time() - start_time
-        logger.error(f"Error finding prospects {duration:.4f} seconds: {str(e)}", exc_info=True)
-        return f"Error finding prospects message: {str(e)}"
+        logger.info(f"Prospects retrieved successfully in {duration:.4f} seconds")
+        return data
+    
+    except requests.exceptions.RequestException as e:
+        duration = time.time() - start_time
+        logger.error(f"Error finding prospects in {duration:.4f} seconds: {str(e)}", exc_info=True)
+        return {"error": str(e)}
+
 
 # ======= Utility Functions =======
 
