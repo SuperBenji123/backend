@@ -442,7 +442,7 @@ def extract_assistant_id(text: str) -> Optional[str]:
     
     patterns = [
         r'assistant[_\s]?id[:\s]?\s*["\'`]?([a-zA-Z0-9_-]+)["\'`]?',
-        r'asst_[a-zA-Z0-9]+'
+        r'asst_[a-zA-Z0-9]{24}'
     ]
     
     for pattern in patterns:
