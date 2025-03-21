@@ -672,6 +672,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
 
         assistant_id = users[user_id][2]
         thread_id = users[user_id][3]
+        logger.info(f"{assistant_id} and {thread_id}")
         
         
         # Process via supervisor workflow
