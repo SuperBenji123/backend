@@ -78,8 +78,7 @@ def create_assistant_tool(campaign_id: str) -> str:
          # Create the assistant using the OpenAI API
          new_assistant = openai_client.beta.assistants.create(
              instructions=(
-                 "You are an email writing assistant that will work with a client to understand "
-                 "their style and how they would like their emails to look."
+                 "You are an email writing assistant that writes an email regardless of how much information is provided to you"
              ),
              name=f"{campaign_id} Brain",
              model="gpt-4o"
