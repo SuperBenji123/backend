@@ -552,7 +552,6 @@ try:
     message_generation_mgmt_agent = create_react_agent(
         model=model,
         tools=[
-            create_email_generation_thread_tool,
             send_message_to_email_generation_thread_tool,
             run_email_assistant_on_thread_tool,
             get_messages_from_email_generation_thread_tool
@@ -564,9 +563,8 @@ try:
             "You can create threads, send messages to threads, run assistants on threads, and get messages from threads. "
             "\n\n"
             "Use these tools based on user requests:\n"
-            "- create_email_generation_thread_tool: When a user wants to start a new conversation thread\n"
-            "- send_message_to_email_generation_thread_tool: When a user wants to send a message to a thread\n"
-            "- run_email_assistant_on_thread_tool: When a user or agent wants to generate an email on a thread\n"
+            "- send_message_to_email_generation_thread_tool: When a user wants to send a message to a thread to generate an email\n"
+            "- run_email_assistant_on_thread_tool: When a user or agent has sent a message to the thread and then wants to generate an email on a thread\n"
             "- get_messages_from_email_generation_thread_tool: When a user wants to see the history of messages in a thread\n"
         )
     )
