@@ -558,7 +558,7 @@ try:
         ],
         name="message_generation_mgmt_agent",
         prompt=(
-            "You are an expert in managing OpenAI assistant threads and interactions. "
+            "You are an expert in managing OpenAI assistant threads and interactions to create emails. "
             "You use these threads to create emails for the user"
             "You can create threads, send messages to threads, run assistants on threads, and get messages from threads. "
             "\n\n"
@@ -607,7 +607,7 @@ try:
             "2. The message_generation_mgmt_agent manages generating emails on a thread using the user's assistant\n"
             "3. The prospecting_agent handles finding and evaluating new prospects\n\n"
             "For tasks related to creating or managing OpenAI assistants, use assistant_manager.\n"
-            "For tasks related to conversation threads and interactions with assistants, use thread_manager.\n"
+            "For tasks related to email generation use message_generation_mgmt_agent.\n"
             "For tasks related to finding prospects, use prospecting expert.\n"
             "Make sure to determine the user's intent correctly and choose the appropriate expert."
         )
