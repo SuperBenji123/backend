@@ -669,6 +669,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
         # Add current query
         messages.append({"role": "user", "content": query})
+        messages.append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
 
         assistant_id = users[user_id][2]
         thread_id = users[user_id][3]
