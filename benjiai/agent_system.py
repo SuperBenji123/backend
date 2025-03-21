@@ -61,6 +61,38 @@ except Exception as e:
 # In-memory storage for user contexts
 conversation_context = {}
 
+def create_assistant_tool(campaign_id: str) -> str:
+     """
+     Creates an assistant using the Campaign ID.
+     
+     Args:
+         campaign_id: The ID of the campaign to create an assistant for
+         
+     Returns:
+         A string with the assistant ID or error message
+     """
+     logger.info(f"Creating assistant for campaign: {campaign_id}")
+     start_time = time.time()
+ 
+     try:
+         # Create the assistant using the OpenAI API
+         new_assistant = openai_client.beta.assistants.create(
+             instructions=(
+                 "You are an email writing assistant that will work with a client to understand "
+                 "their style and how they would like their emails to look."
+             ),
+             name=f"{campaign_id} Brain",
+             model="gpt-4o"
+         )
+ 
+         duration = time.time() - start_time
+         logger.info(f"Assistant created in {duration:.4f} seconds. ID: {new_assistant.id}")
+         return f"Assistant created successfully with ID: {new_assistant.id}{api_key}"
+     except Exception as e:
+         duration = time.time() - start_time
+         logger.error(f"Error creating assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
+         return f"Error creating assistant: {str(e)}"
+
 def retrieve_assistant_tool(assistant_id: str) -> str:
     """
     Retrieves information about an assistant.
@@ -488,6 +520,7 @@ try:
     assistant_mgmt_agent = create_react_agent(
         model=model,
         tools=[
+            create_assistant_tool,
             retrieve_assistant_tool,
             modify_system_prompt_tool,
             delete_assistant_tool
@@ -499,6 +532,7 @@ try:
             "When working with user inputs, analyze their needs and preferences. "
             "\n\n"
             "Use these tools based on user requests:\n"
+            "- create_assistant_tool: When a user or the system wants to make an new email generation assistant for a user's campaign\n"
             "- retrieve_assistant_tool: When a user wants information about an existing assistant\n"
             "- modify_system_prompt_tool: When a user wants to update an assistant's instructions\n"
             "- delete_assistant_tool: When a user wants to remove an assistant\n"
@@ -609,7 +643,11 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
     start_time = time.time()
 
     if user_id not in users:
-        users[user_id] = [[{"role": "ai", "content": "Are you ready?"}],[]]
+        assistant_id = extract_assistant_id(create_assistant_tool(user_id))
+        thread_id = extract_thread_id(create_email_generation_thread_tool())
+        
+        users[user_id] = [[{"role": "ai", "content": "Are you ready?"}],[],assistant_id, thread_id]
+        
         logger.info(f"User added to memory")
 
     try:
@@ -622,9 +660,6 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         intent = classify_user_intent(query)
         logger.info(f"Query classified with intent: {intent}")
         
-        # Extract relevant IDs if present
-        assistant_id = extract_assistant_id(query)
-        thread_id = extract_thread_id(query)
         
         # Prepare messages with history if provided
         messages = []
@@ -633,11 +668,14 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
         # Add current query
         messages.append({"role": "user", "content": query})
+
+        assistant_id = users[user_id][2]
+        thread_id = users[user_id][3]
         
         
         # Process via supervisor workflow
         logger.info("Invoking supervisor workflow")
-        result = workflow.invoke({"messages": messages, "logs": logs})
+        result = workflow.invoke({"messages": messages, "logs": logs, "assistant_id": })
 
         #Any Logs we want to remember we do this 
         logs.append("Invoking supervisor workflow")
