@@ -220,11 +220,12 @@ def send_message_to_email_generation_thread_tool(thread_id: str, message_content
     start_time = time.time()
 
     message_to_be_sent = {"role": role, "content": message_content}
+    logger.info({message_to_be_sent})
     
     try:
         message = openai_client.beta.threads.messages.create(
             thread_id,
-            messages_to_be_sent
+            message_to_be_sent
         )
         
         duration = time.time() - start_time
