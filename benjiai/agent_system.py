@@ -687,6 +687,8 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
 
         #Any Logs we want to remember we do this 
         logs.append("Invoking supervisor workflow")
+
+        logger.error(f"{email}")
         
         # Extract the response content from the result
         response_content = ""
