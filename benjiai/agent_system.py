@@ -11,6 +11,7 @@ import re
 import time
 import requests
 import asyncio
+import aiohttp
 from typing import Dict, Any, Optional, List, Union
 
 # Set up logging
@@ -295,6 +296,38 @@ def get_messages_from_email_generation_thread_tool(thread_id: str) -> str:
         logger.error(f"Error getting messages after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error getting messages: {str(e)}"
 
+
+#Find Prospects Tool
+def find_prospects_tool(prompt: str) -> str:
+    """
+    Call Make Webhook to retrieve prospects for a given client.
+    
+    Args:
+        prompt: User inputted prompt to send to the webhook
+        
+    Returns:
+        A dictionary made up of a series of prospects and the information about them
+    """
+    logger.info(f"Finding prospects based on this prompt: '{prompt[:50]}...' (truncated)")
+    start_time = time.time()
+    
+    try:
+        url = "https://hook.eu2.make.com/ytq23ywoyd4x2ve23fjdxhc1n1wluj6a"
+        headers = {"Content-Type": "application/json"}
+        payload = {"prompt": prompt}
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload, headers=headers) as response:
+                data = await response.json()
+                duration = time.time() - start_time
+                logger.info(f"Prospects retrieved successfully in {duration:.4f} seconds")
+                return data
+        
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error finding prospects {duration:.4f} seconds: {str(e)}", exc_info=True)
+        return f"Error finding prospects message: {str(e)}"
+
 # ======= Utility Functions =======
 
 def classify_user_intent(text: str) -> str:
@@ -477,7 +510,7 @@ try:
             run_email_assistant_on_thread_tool,
             get_messages_from_email_generation_thread_tool
         ],
-        name="thread_manager",
+        name="message_generation_mgmt_agent",
         prompt=(
             "You are an expert in managing OpenAI assistant threads and interactions. "
             "You use these threads to create emails for the user"
@@ -495,20 +528,42 @@ except Exception as e:
     logger.error(f"Error creating thread management agent: {str(e)}", exc_info=True)
     raise
 
+# Create thread management agent
+logger.info("Creating prospecting agent")
+try:
+    prospecting_agent = create_react_agent(
+        model=model,
+        tools=[
+            find_prospects_tool
+        ],
+        name="prospecting_agent",
+        prompt=(
+            "You are an expert in finding sales prospects for a given user. "
+            "You can find prospects, filter them, and evaluate them"
+            "\n\n"
+            "Use these tools based on user requests:\n"
+            "- find_prospcts_tool: When a user wants to find new prospects\n"
+        )
+    )
+    logger.info("Prospecting agent created successfully")
+except Exception as e:
+    logger.error(f"Error creating prospecting agent: {str(e)}", exc_info=True)
+    raise
+
 # Create supervisor workflow
 logger.info("Creating supervisor workflow")
 try:
     supervisor = create_supervisor(
-        [assistant_mgmt_agent, message_generation_mgmt_agent],
+        [assistant_mgmt_agent, message_generation_mgmt_agent, prospecting_agent],
         model=model,
         prompt=(
             "You are a team supervisor managing three experts:\n"
             "1. The assistant_manager handles creating, updating, and deleting OpenAI assistants\n"
-            "2. The thread_manager manages conversation threads and interactions with email generation assistants\n"
-            "3. The email_expert specializes in drafting professional emails\n\n"
+            "2. The message_generation_mgmt_agent manages creating a thread for message generation and generating emails on this thread using the user's assistant\n"
+            "3. The prospecting_agent handles finding and evaluating new prospects\n\n"
             "For tasks related to creating or managing OpenAI assistants, use assistant_manager.\n"
             "For tasks related to conversation threads and interactions with assistants, use thread_manager.\n"
-            "For tasks related to drafting emails directly, use email_expert.\n"
+            "For tasks related to finding prospects, use prospecting expert.\n"
             "Make sure to determine the user's intent correctly and choose the appropriate expert."
         )
     )
