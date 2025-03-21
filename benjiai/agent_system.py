@@ -142,9 +142,11 @@ def modify_system_prompt_tool(assistant_id: str, new_system_prompt: str) -> str:
     start_time = time.time()
     
     try:
+        new_instructions = {"instructions": new_system_prompt}
+        
         updated_assistant = openai_client.beta.assistants.update(
             assistant_id,
-            {"instructions": new_system_prompt}
+            new_instructions
         )
         
         duration = time.time() - start_time
