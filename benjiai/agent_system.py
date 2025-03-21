@@ -34,6 +34,8 @@ users = {
     "default_user_id": ["Hello, bot message", "Hey there, user message"]
 }
 
+email = ""
+
 # Get API keys from environment variables
 api_key = os.getenv("OPENAI_API_KEY")
 assistants_api_key = os.getenv("OPENAI_ASSISTANTS_API_KEY", api_key)  # Use main API key as fallback
@@ -289,6 +291,7 @@ def run_email_assistant_on_thread_tool(assistant_id: str, thread_id: str) -> str
         logger.info(f"Assistant response received in {duration:.4f} seconds")
         logger.debug(f"Response content: {message_content[:100]}...")
         logger.error(f"Response content: {message_content[:100]}...")
+        email = message_content
         
         return f"Assistant response: {message_content}"
     except Exception as e:
