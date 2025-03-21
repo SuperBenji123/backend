@@ -678,8 +678,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         thread_id = users[user_id][3]
         logger.info(f"{assistant_id} and {thread_id}")
         messages.append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
-        
-        email = ""
+    
         
         # Process via supervisor workflow
         logger.info("Invoking supervisor workflow")
