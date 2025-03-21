@@ -495,24 +495,6 @@ except Exception as e:
     logger.error(f"Error creating thread management agent: {str(e)}", exc_info=True)
     raise
 
-# Create email agent
-logger.info("Creating email agent")
-try:
-    email_agent = create_react_agent(
-        model=model,
-        tools=[draft_email_tool],
-        name="email_expert",
-        prompt=(
-            "You are an email writing expert. You specialize in drafting professional emails. "
-            "When asked to create an email, use the draft_email_tool with appropriate "
-            "subject, recipient, and content parameters. Be professional and concise."
-        )
-    )
-    logger.info("Email agent created successfully")
-except Exception as e:
-    logger.error(f"Error creating email agent: {str(e)}", exc_info=True)
-    raise
-
 # Create supervisor workflow
 logger.info("Creating supervisor workflow")
 try:
