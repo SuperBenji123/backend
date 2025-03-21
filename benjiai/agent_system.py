@@ -675,11 +675,11 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         logger.info(f"{assistant_id} and {thread_id}")
         messages.append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
-        
+        email = ""
         
         # Process via supervisor workflow
         logger.info("Invoking supervisor workflow")
-        result = workflow.invoke({"messages": messages, "logs": logs, "assistant_id": assistant_id, "thread_id": thread_id})
+        result = workflow.invoke({"messages": messages, "logs": logs, "assistant_id": assistant_id, "thread_id": thread_id, "email": email})
 
         #Any Logs we want to remember we do this 
         logs.append("Invoking supervisor workflow")
@@ -701,7 +701,8 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
             "response": response_content,
             "assistant_id": assistant_id,
             "thread_id": thread_id,
-            "processing_time": round(time.time() - start_time, 4)
+            "processing_time": round(time.time() - start_time, 4),
+            "email": email,
         }
 
         #Adds agent response message to messages
