@@ -604,7 +604,7 @@ try:
         prompt=(
             "You are a team supervisor managing three experts:\n"
             "1. The assistant_manager handles creating, updating, and deleting OpenAI assistants\n"
-            "2. The message_generation_mgmt_agent manages creating a thread for message generation and generating emails on this thread using the user's assistant\n"
+            "2. The message_generation_mgmt_agent manages generating emails on a thread using the user's assistant\n"
             "3. The prospecting_agent handles finding and evaluating new prospects\n\n"
             "For tasks related to creating or managing OpenAI assistants, use assistant_manager.\n"
             "For tasks related to conversation threads and interactions with assistants, use thread_manager.\n"
