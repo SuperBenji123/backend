@@ -404,7 +404,7 @@ def classify_user_intent(text: str) -> str:
         "formal email", "informal email", "professional email",
         "follow up email", "introduction email", "thank you email",
         "cold email", "sales email", "marketing email",
-        "help with email", "email template", "email format"
+        "help with email", "email template", "email format", "email", "write an email"
     ]
     
     # System improvement keywords
@@ -675,6 +675,9 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
         # Add current query
         messages.append({"role": "user", "content": query})
+
+        global email
+        email = ""
 
         assistant_id = users[user_id][2]
         thread_id = users[user_id][3]
