@@ -253,6 +253,8 @@ def run_email_assistant_on_thread_tool(assistant_id: str, thread_id: str) -> str
     start_time = time.time()
     
     try:
+        global email
+        
         # Create a run
         run = openai_client.beta.threads.runs.create(
             thread_id=thread_id,
@@ -290,7 +292,7 @@ def run_email_assistant_on_thread_tool(assistant_id: str, thread_id: str) -> str
         duration = time.time() - start_time
         logger.info(f"Assistant response received in {duration:.4f} seconds")
         logger.error(f"Response content: {message_content[:100]}...")
-        global email = message_content
+        email = message_content
 
         logger.error(f"{email}")
         
