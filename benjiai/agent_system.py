@@ -664,7 +664,7 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
         thread_id = extract_thread_id(create_email_generation_thread_tool())
         
         users[user_id] = [[{"role": "ai", "content": "Are you ready?"}],[],assistant_id, thread_id]
-        users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
+        #users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
         logger.info(f"User: {user_id} added to memory")
 
