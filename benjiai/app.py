@@ -22,12 +22,14 @@ def query_agent():
     try:
         data = request.json
         user_query = data.get('query', '')
+        user_id = data.get('user_id', '')
+        current_stage = data.get('current_stage', '')
         
         if not user_query:
             return jsonify({"error": "No query provided"}), 400
             
         # Process the query using our agent system
-        result = process_query(user_query)
+        result = process_query(user_query, user_id, current_stage)
         
         return jsonify(result)
     except Exception as e:
