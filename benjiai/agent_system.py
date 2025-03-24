@@ -368,7 +368,7 @@ def find_prospects_tool(prompt: str) -> dict:
         
         duration = time.time() - start_time
         logger.info(f"Prospects retrieved successfully in {duration:.4f} seconds")
-        prospects.append(data)
+        prospects = data
         logger.error(f"Prospects: {data}")
         return (f"Prospects retrieved")
     
