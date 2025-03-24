@@ -375,72 +375,80 @@ def find_prospects_tool(prompt: str) -> dict:
 
 # ======= Utility Functions =======
 
-def classify_user_intent(text: str) -> str:
+def classify_user_intent(text: str, stage: int) -> str:
     """
-    Classify the user's intent based on their message
+    Classify the user's intent based on their message and current onboarding stage.
     
     Args:
         text: The user's input message
+        stage: The user's current stage of onboarding
         
     Returns:
         The classified intent: "assistant_management", "email_creation", 
         "system_improvement", "prospecting" or "general_conversation"
     """
-    logger.debug(f"Classifying intent for query: '{text[:50]}...' (truncated)")
+    logger.debug(f"Classifying intent for query: '{text[:50]}...' (truncated), stage: {stage}")
     start_time = time.time()
-    
-    text_lower = text.lower()
-    
-    # Assistant management keywords
-    assistant_mgmt_keywords = [
-        "create assistant", "make assistant", "new assistant",
-        "delete assistant", "remove assistant", 
-        "modify assistant", "update assistant", "change assistant",
-        "system prompt", "instructions", "assistant settings"
-    ]
-    
-    # Email creation keywords
-    email_keywords = [
-        "write email", "draft email", "create email", "compose email",
-        "email to ", "message to ", "reply to ", "respond to ",
-        "formal email", "informal email", "professional email",
-        "follow up email", "introduction email", "thank you email",
-        "cold email", "sales email", "marketing email",
-        "help with email", "email template", "email format", "email", "write an email"
-    ]
-    
-    # System improvement keywords
-    improvement_keywords = [
-        "improve", "enhance", "upgrade", "better", "smarter",
-        "learn to", "teach you", "adjust your", "change your style",
-        "be more", "sound more", "write more", "different tone",
-        "feedback", "suggestion", "preference", "like it when you"
-    ]
 
-    # Prospecting Keywords
-    prospecting_keywords = [
-        "prospect", "prospects", "contacts", "people"
-    ]
-    
-    # Check for assistant management intent
-    if any(keyword in text_lower for keyword in assistant_mgmt_keywords):
-        intent = "assistant_management"
-    # Check for email creation intent
-    elif any(keyword in text_lower for keyword in email_keywords):
-        intent = "email_creation"
-    # Check for system improvement intent
-    elif any(keyword in text_lower for keyword in improvement_keywords):
-        intent = "system_improvement"
-    # Check for prospecting intent
-    elif any(keyword in text_lower for keyword in prospecting_keywords):
-        intent = "prospecting"
-    # Default intent
-    else:
-        intent = "general_conversation"
-    
+    text_lower = text.lower()
+
+    # Define keyword categories
+    intent_keywords = {
+        "assistant_management": [
+            "create assistant", "make assistant", "new assistant",
+            "delete assistant", "remove assistant", 
+            "modify assistant", "update assistant", "change assistant",
+            "system prompt", "instructions", "assistant settings"
+        ],
+        "email_creation": [
+            "write email", "draft email", "create email", "compose email",
+            "email to ", "message to ", "reply to ", "respond to ",
+            "formal email", "informal email", "professional email",
+            "follow up email", "introduction email", "thank you email",
+            "cold email", "sales email", "marketing email",
+            "help with email", "email template", "email format", "email", "write an email"
+        ],
+        "system_improvement": [
+            "improve", "enhance", "upgrade", "better", "smarter",
+            "learn to", "teach you", "adjust your", "change your style",
+            "be more", "sound more", "write more", "different tone",
+            "feedback", "suggestion", "preference", "like it when you"
+        ],
+        "prospecting": [
+            "prospect", "prospects", "contacts", "people"
+        ]
+    }
+
+    # Define stage-based intent bias
+    stage_bias = {
+        1: {"assistant_management": 2},
+        2: {"prospecting": 2},
+        3: {"email_creation": 2, "general_conversation": 1},
+        4: {"system_improvement": 2},
+        # Default bias can be added here if needed
+    }
+
+    # Initialize score dictionary
+    scores = {intent: 0 for intent in intent_keywords.keys()}
+    scores["general_conversation"] = 0  # Include default intent
+
+    # Score keyword matches
+    for intent, keywords in intent_keywords.items():
+        for keyword in keywords:
+            if keyword in text_lower:
+                scores[intent] += 1
+
+    # Add stage-based bias
+    for intent, bias in stage_bias.get(stage, {}).items():
+        scores[intent] += bias
+
+    # Choose highest scoring intent
+    intent = max(scores, key=scores.get)
+
     duration = time.time() - start_time
-    logger.debug(f"Intent classification completed in {duration:.4f} seconds. Intent: {intent}")
+    logger.debug(f"Intent classification completed in {duration:.4f} seconds. Intent: {intent}, Scores: {scores}")
     return intent
+
 
 #CHANGE THIS TO JUST TAKE AN INPUT FROM THE FRONTEND OR FROM THE DATABASE
 def extract_assistant_id(text: str) -> Optional[str]:
@@ -636,14 +644,14 @@ except Exception as e:
 
 # ======= Process User Input =======
 
-def process_query(query: str, user_id: str = "default_user", history: List[Dict[str, str]] = None) -> Dict[str, Any]:
+def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any]:
     """
     Process a user query through the agent system.
     
     Args:
         query: The user's input message
         user_id: A unique identifier for the user
-        history: Optional conversation history
+        current_stage: The stage that the user is at on the system - used for classifying intent
         
     Returns:
         A dictionary containing the processed response and metadata
@@ -656,8 +664,9 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         thread_id = extract_thread_id(create_email_generation_thread_tool())
         
         users[user_id] = [[{"role": "ai", "content": "Are you ready?"}],[],assistant_id, thread_id]
+        users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
-        logger.info(f"User added to memory")
+        logger.info(f"User: {user_id} added to memory")
 
     try:
         logs = []
@@ -666,7 +675,7 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         
 
         # Classify the query to determine intent
-        intent = classify_user_intent(query)
+        intent = classify_user_intent(query, current_stage)
         logger.info(f"Query classified with intent: {intent}")
         
         
@@ -684,7 +693,6 @@ def process_query(query: str, user_id: str = "default_user", history: List[Dict[
         assistant_id = users[user_id][2]
         thread_id = users[user_id][3]
         logger.info(f"{assistant_id} and {thread_id}")
-        messages.append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
     
         
         # Process via supervisor workflow
