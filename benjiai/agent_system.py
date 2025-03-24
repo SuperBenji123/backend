@@ -357,6 +357,8 @@ def find_prospects_tool(prompt: str) -> dict:
     url = "https://hook.eu2.make.com/ytrr0o7g5l0mszaj6ugv9uhymkfy1l3q"
     headers = {"Content-Type": "application/json"}
     payload = {"prompt": prompt}
+
+    global prospects
     
     try:
         response = requests.post(url, json=payload, headers=headers)
@@ -365,7 +367,9 @@ def find_prospects_tool(prompt: str) -> dict:
         
         duration = time.time() - start_time
         logger.info(f"Prospects retrieved successfully in {duration:.4f} seconds")
-        return data
+        prospects = data
+        logger.error(f"Prospects: {data}")
+        return (f"Prospects retrieved")
     
     except requests.exceptions.RequestException as e:
         duration = time.time() - start_time
@@ -728,6 +732,9 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
         global email
         email = ""
 
+        global prospects
+        prospects = []
+
         assistant_id = users[user_id][2]
         thread_id = users[user_id][3]
         logger.info(f"{assistant_id} and {thread_id}")
@@ -761,6 +768,7 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
             "thread_id": thread_id,
             "processing_time": round(time.time() - start_time, 4),
             "email": email,
+            "prospects": prospects,
         }
 
         #Adds agent response message to messages
