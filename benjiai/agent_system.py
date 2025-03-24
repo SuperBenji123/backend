@@ -425,22 +425,29 @@ def classify_user_intent(text: str, stage: int) -> str:
         2: {"prospecting": 2},
         3: {"email_creation": 2, "general_conversation": 1},
         4: {"system_improvement": 2},
-        # Default bias can be added here if needed
     }
 
-    # Initialize score dictionary
-    scores = {intent: 0 for intent in intent_keywords.keys()}
-    scores["general_conversation"] = 0  # Include default intent
+    # Track keyword matches
+    keyword_matches = {intent: False for intent in intent_keywords}
+    scores = {intent: 0 for intent in intent_keywords}
+    scores["general_conversation"] = 0  # Default intent
 
-    # Score keyword matches
+    # Score keyword matches and track presence
     for intent, keywords in intent_keywords.items():
         for keyword in keywords:
             if keyword in text_lower:
                 scores[intent] += 1
+                keyword_matches[intent] = True
 
-    # Add stage-based bias
+    # Apply stage bias only to intents with keyword matches
     for intent, bias in stage_bias.get(stage, {}).items():
-        scores[intent] += bias
+        if intent in scores and (intent == "general_conversation" or keyword_matches.get(intent)):
+            scores[intent] += bias
+
+    # Only allow non-general intents if they had a keyword match
+    for intent in intent_keywords:
+        if not keyword_matches[intent]:
+            scores[intent] = 0  # Zero out scores without any keyword match
 
     # Choose highest scoring intent
     intent = max(scores, key=scores.get)
@@ -589,13 +596,41 @@ except Exception as e:
     logger.error(f"Error creating thread management agent: {str(e)}", exc_info=True)
     raise
 
+logger.info("Creating Training Agent")
+try: 
+    email_training_agent = create_react_agent(
+        model=model,
+        tools=[
+            #retrieve_system_prompt_tool,
+            modify_system_prompt_tool,
+            #update_new_system_prompt_tool,
+
+        ],
+        name="email_training_agent",
+        prompt=(
+            "You are an expert in refining email generation prompts for the message_generation_mgmt_agent"
+            "You can extract system prompts from agents, interpret what changes need to be made to the system prompt based on the user's query, create new and updated system prompts"
+            "\n\n"
+            "Use these tools based on requests:\n"
+            "- retrieve_system_prompt_tool: When you need to retrieve a system prompt so you know what prompt to update\n"
+            "- modify_system_prompt_tool: Use this tool when you have created the new system prompt and need to add it to the email generation agent\n"
+        )
+    )
+    logger.info("Email Training Agent created successfully")
+except Exception as e:
+    logger.error(f"Error creating Email Training Agent")
+    raise
+
 # Create thread management agent
-logger.info("Creating prospecting agent")
+logger.info("Creating Prospecting agent")
 try:
     prospecting_agent = create_react_agent(
         model=model,
         tools=[
-            find_prospects_tool
+            #create_apollo_url_tool,
+            #make_apollo_calls_tool,
+            find_prospects_tool,
+            #evaluate_prospects_tool,
         ],
         name="prospecting_agent",
         prompt=(
@@ -663,7 +698,7 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
         assistant_id = extract_assistant_id(create_assistant_tool(user_id))
         thread_id = extract_thread_id(create_email_generation_thread_tool())
         
-        users[user_id] = [[{"role": "ai", "content": "Are you ready?"}],[],assistant_id, thread_id]
+        users[user_id] = [[{"role": "ai", "content": "Chat Begins"}],[],assistant_id, thread_id]
         users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
         logger.info(f"User: {user_id} added to memory")
