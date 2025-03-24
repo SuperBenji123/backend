@@ -354,7 +354,7 @@ def find_prospects_tool(prompt: str) -> dict:
     logger.info(f"Finding prospects based on this prompt: '{prompt[:50]}...' (truncated)")
     start_time = time.time()
     
-    url = "https://hook.eu2.make.com/ytq23ywoyd4x2ve23fjdxhc1n1wluj6a"
+    url = "https://hook.eu2.make.com/ytrr0o7g5l0mszaj6ugv9uhymkfy1l3q"
     headers = {"Content-Type": "application/json"}
     payload = {"prompt": prompt}
     
@@ -418,6 +418,8 @@ def classify_user_intent(text: str, stage: int) -> str:
             "prospect", "prospects", "contacts", "people"
         ]
     }
+
+    #Also decide based on at least previous system message and all messages from a stage
 
     # Define stage-based intent bias
     stage_bias = {
@@ -698,7 +700,7 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
         assistant_id = extract_assistant_id(create_assistant_tool(user_id))
         thread_id = extract_thread_id(create_email_generation_thread_tool())
         
-        users[user_id] = [[{"role": "ai", "content": "Chat Begins"}],[],assistant_id, thread_id]
+        users[user_id] = [[{"role": "ai", "content": "Chat Begins"}],[],assistant_id, thread_id, [0]]
         users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
         logger.info(f"User: {user_id} added to memory")
@@ -721,6 +723,7 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
         
         # Add current query
         messages.append({"role": "user", "content": query})
+        users[user_id][4].append(current_stage)
 
         global email
         email = ""
