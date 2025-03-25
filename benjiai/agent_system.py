@@ -158,6 +158,81 @@ def modify_system_prompt_tool(assistant_id: str, new_system_prompt: str) -> str:
         duration = time.time() - start_time
         logger.error(f"Error modifying system prompt after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error modifying system prompt: {str(e)}"
+    
+def update_email_assistant_system_prompt_tool(user_prompt: str, current_system_prompt: str, user_id: str ) -> str:
+    """
+    Updates email assistant system prompt
+
+    Args:
+        user_prompt: The prompt which determines how the current system prompt is updated
+        current_system_prompt: The current system prompt of the user's email generation assistant
+    
+    Returns: 
+        A new and improved system prompt string
+    """
+
+    logger.info(f"Updating User's System Prompt")
+    start_time = time.time()
+
+    message_content = user_prompt + current_system_prompt
+
+    assistant_id = "asst_ZGJ2Xqyf9rvtjYKJdRiJ3JTy"
+    message_to_be_sent = {"role": "bot", "content": message_content}
+    training_thread_id = users[user_id][5]
+
+    try: 
+
+        if training_thread_id == "":
+            training_thread_id = openai_client.beta.threads.create()
+
+        message = openai_client.beta.threads.messages.create(
+            thread_id,
+            message_to_be_sent
+        )
+
+        run = openai_client.beta.threads.runs.create(
+            thread_id=training_thread_id,
+            assistant_id=assistant_id
+        )
+
+        while True:
+            run_status = openai_client.beta.threads.runs.retrieve(
+                thread_id=training_thread_id,
+                run_id=run.id
+            )
+            
+            if run_status.status == "completed":
+                logger.info(f"Run {run.id} completed")
+                break
+            elif run_status.status in ["failed", "cancelled", "expired"]:
+                logger.error(f"Run {run.id} {run_status.status} with reason: {run_status.last_error}")
+                return f"Run {run_status.status}: {run_status.last_error}"
+            
+            logger.debug(f"Run {run.id} status: {run_status.status}, waiting...")
+            time.sleep(1)  # Wait before polling again
+        
+        # Get the latest message
+        messages = openai_client.beta.threads.messages.list(thread_id=training_thread_id)
+        
+        if not messages.data:
+            return "No messages found after run completion"
+        
+        latest_message = messages.data[0]
+        message_content = latest_message.content[0].text.value
+        
+        duration = time.time() - start_time
+        logger.info(f"Training Assistant response received in {duration:.4f} seconds")
+        logger.error(f"Response content: {message_content[:100]}...")
+
+        logger.error(f"{email}")
+        
+        return f"Training Assistant response: {message_content}"
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error running training assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
+        return f"Error running training assistant: {str(e)}"
+
+
 
 def delete_assistant_tool(assistant_id: str) -> str:
     """
@@ -609,8 +684,8 @@ try:
         model=model,
         tools=[
             #retrieve_system_prompt_tool,
+            update_email_assistant_system_prompt_tool,
             modify_system_prompt_tool,
-            #update_new_system_prompt_tool,
 
         ],
         name="email_training_agent",
@@ -620,6 +695,7 @@ try:
             "\n\n"
             "Use these tools based on requests:\n"
             "- retrieve_system_prompt_tool: When you need to retrieve a system prompt so you know what prompt to update\n"
+            "- update_email_assistant_system_prompt_tool: When you need to generate/create an updated system prompt\n"
             "- modify_system_prompt_tool: Use this tool when you have created the new system prompt and need to add it to the email generation agent\n"
         )
     )
@@ -705,7 +781,7 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
         assistant_id = extract_assistant_id(create_assistant_tool(user_id))
         thread_id = extract_thread_id(create_email_generation_thread_tool())
         
-        users[user_id] = [[{"role": "ai", "content": "Chat Begins"}],[],assistant_id, thread_id, [0]]
+        users[user_id] = [[{"role": "ai", "content": "Chat Begins"}],[],assistant_id, thread_id, [0],""]
         users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
         
         logger.info(f"User: {user_id} added to memory")
