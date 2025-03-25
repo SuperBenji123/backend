@@ -127,6 +127,31 @@ def retrieve_assistant_tool(assistant_id: str) -> str:
         duration = time.time() - start_time
         logger.error(f"Error retrieving assistant after {duration:.4f} seconds: {str(e)}", exc_info=True)
         return f"Error retrieving assistant: {str(e)}"
+    
+def retrieve_system_prompt_tool(assistant_id: str) -> str:
+    """
+    Retrieves the current system prompt of a particular user's email generation assistant.
+
+    Args: 
+        assistant_id: The ID of the assistant whose system prompt to retrieve
+
+    Returns:
+        A string with the current system prompt for that assistant or an error
+    """
+    logger.info(f"Retrieving email generation assistant system prompt: {assistant_id}")
+    start_time = time.time()
+
+    try:
+        assistant = openai_client.beta.assistants.retrieve(assistant_id)
+
+        duration = time.time() - start_time
+        logger.info(f"Email Generation Assistant System Prompt retrieved in {duration:.4f} seconds")
+
+        return assistant.instructions
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error retrieving Email Generation Assistant System Prompt after {duration:.4f} seconds: {str(e)}", exc_info=True)
+        return f"Error retrieving Email Generation Assistant System Prompt: {str(e)}"
 
 def modify_system_prompt_tool(assistant_id: str, new_system_prompt: str) -> str:
     """
@@ -683,7 +708,7 @@ try:
     email_training_agent = create_react_agent(
         model=model,
         tools=[
-            #retrieve_system_prompt_tool,
+            retrieve_system_prompt_tool,
             update_email_assistant_system_prompt_tool,
             modify_system_prompt_tool,
 
