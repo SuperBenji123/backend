@@ -696,7 +696,7 @@ try:
             "Use these tools based on requests:\n"
             "- retrieve_system_prompt_tool: When you need to retrieve a system prompt so you know what prompt to update\n"
             "- update_email_assistant_system_prompt_tool: When you need to generate/create an updated system prompt\n"
-            "- modify_system_prompt_tool: Use this tool when you have created the new system prompt and need to add it to the email generation agent\n"
+            "- modify_system_prompt_tool: Use this tool when you have created the new system prompt and need to add it to the email generation agent - pass the users id to this tool\n"
         )
     )
     logger.info("Email Training Agent created successfully")
@@ -733,16 +733,18 @@ except Exception as e:
 logger.info("Creating supervisor workflow")
 try:
     supervisor = create_supervisor(
-        [assistant_mgmt_agent, message_generation_mgmt_agent, prospecting_agent],
+        [assistant_mgmt_agent, message_generation_mgmt_agent, prospecting_agent, email_training_agent],
         model=model,
         prompt=(
             "You are a team supervisor managing three experts:\n"
             "1. The assistant_manager handles creating, updating, and deleting OpenAI assistants\n"
             "2. The message_generation_mgmt_agent manages generating emails on a thread using the user's assistant\n"
-            "3. The prospecting_agent handles finding and evaluating new prospects\n\n"
+            "3. The prospecting_agent handles finding and evaluating new prospects\n"
+            "4. The email_training_agent manages updating the email generation assistant system prompt to effectively train the assistant to better understand what emails the client wants to write\n\n"
             "For tasks related to creating or managing OpenAI assistants, use assistant_manager.\n"
             "For tasks related to email generation use message_generation_mgmt_agent.\n"
             "For tasks related to finding prospects, use prospecting expert.\n"
+            "For tasks related to training the email assistant, use email_training expert"
             "Make sure to determine the user's intent correctly and choose the appropriate expert."
         )
     )
