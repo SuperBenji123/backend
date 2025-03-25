@@ -13,6 +13,7 @@ import requests
 import asyncio
 import aiohttp
 from typing import Dict, Any, Optional, List, Union
+from DefaultSystemPrompt import getPrompt
 
 # Set up logging
 logging.basicConfig(
@@ -81,7 +82,7 @@ def create_assistant_tool(campaign_id: str) -> str:
          # Create the assistant using the OpenAI API
          new_assistant = openai_client.beta.assistants.create(
              instructions=(
-                 "Output a randomly generated email sent by user to oscar about selling Super Benji"
+                 getPrompt()
              ),
              name=f"{campaign_id} Brain",
              model="gpt-4o"
@@ -209,6 +210,7 @@ def update_email_assistant_system_prompt_tool(user_prompt: str, current_system_p
 
         if training_thread_id == "":
             training_thread_id = openai_client.beta.threads.create()
+            users[user_id][5] = training_thread_id
 
         message = openai_client.beta.threads.messages.create(
             thread_id,
@@ -808,8 +810,9 @@ def process_query(query: str, user_id: str, current_stage: int) -> Dict[str, Any
         assistant_id = extract_assistant_id(create_assistant_tool(user_id))
         thread_id = extract_thread_id(create_email_generation_thread_tool())
         
-        users[user_id] = [[{"role": "ai", "content": "Chat Begins"}],[],assistant_id, thread_id, [0],""]
-        users[user_id][0].append({"role": "user", "content": f"My Assistant ID is {assistant_id} and my Thread ID is {thread_id}"})
+        users[user_id] = [[{"role": "ai", "content": "Chat Begins"}],[],assistant_id, thread_id, [0],"", ""]
+        users[user_id][0].append({"role": "user", "content": f"My Email Generation Assistant ID is {assistant_id} and my Email Generation Thread ID is {thread_id}"})
+
         
         logger.info(f"User: {user_id} added to memory")
 
