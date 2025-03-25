@@ -492,7 +492,7 @@ def classify_user_intent(text: str, stage: int) -> str:
         
     Returns:
         The classified intent: "assistant_management", "email_creation", 
-        "system_improvement", "prospecting" or "general_conversation"
+        "prompt_improvement", "prospecting" or "general_conversation"
     """
     logger.debug(f"Classifying intent for query: '{text[:50]}...' (truncated), stage: {stage}")
     start_time = time.time()
@@ -515,7 +515,7 @@ def classify_user_intent(text: str, stage: int) -> str:
             "cold email", "sales email", "marketing email",
             "help with email", "email template", "email format", "email", "write an email"
         ],
-        "system_improvement": [
+        "prompt_improvement": [
             "improve", "enhance", "upgrade", "better", "smarter",
             "learn to", "teach you", "adjust your", "change your style",
             "be more", "sound more", "write more", "different tone",
@@ -532,7 +532,7 @@ def classify_user_intent(text: str, stage: int) -> str:
     stage_bias = {
         1: {"assistant_management": 2},
         2: {"prospecting": 2},
-        3: {"email_creation": 2, "general_conversation": 1},
+        3: {"email_creation": 2, "general_conversation": 1, "prompt_improvement": 1},
         4: {"system_improvement": 2},
     }
 
