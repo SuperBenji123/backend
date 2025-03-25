@@ -771,7 +771,7 @@ try:
             "For tasks related to creating or managing OpenAI assistants, use assistant_manager.\n"
             "For tasks related to email generation use message_generation_mgmt_agent.\n"
             "For tasks related to finding prospects, use prospecting expert.\n"
-            "For tasks related to training the email assistant, use email_training expert"
+            "For tasks related to prompt_improvement, use email_training expert"
             "Make sure to determine the user's intent correctly and choose the appropriate expert."
         )
     )
