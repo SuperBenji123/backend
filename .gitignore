@@ -1,0 +1,14 @@
+node_modules/
+
+package-lock.json
+package.json
+dist/*
+coverage/*
+.vscode/*
+.idea/*
+.DS_Store
+*.log
+*.env
+*.tgz
+*.zip
+*.tar.g
