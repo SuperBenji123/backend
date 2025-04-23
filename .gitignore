@@ -1,14 +1,12 @@
+# Dependency directory
 node_modules/
 
-package-lock.json
-package.json
-dist/*
-coverage/*
-.vscode/*
-.idea/*
-.DS_Store
+# Environment variables
+.env
+
+# Logs (optional)
 *.log
-*.env
-*.tgz
-*.zip
-*.tar.g
+
+# OS-specific files (optional)
+.DS_Store
+Thumbs.db
