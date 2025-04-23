@@ -30,6 +30,8 @@ if (
   console.error("Missing required environment variables");
   throw new Error("Missing required environment variables");
 }
+
+
 // Initialize Fastify server
 const fastify = Fastify();
 fastify.register(fastifyFormBody);
@@ -41,9 +43,7 @@ const PORT = process.env.PORT || 8000;
 
 // Root route for health check
 fastify.get("/", async (_, reply) => {
-  reply.send({
-    message: "Server is running"
-  });
+  reply.send({ message: "Server is running" });
 });
 
 
@@ -54,23 +54,19 @@ const twilioClient = new Twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 // Helper function to hang up the call
 async function hangUpCall(callSid) {
   try {
-    await twilioClient.calls(callSid).update({
-      status: 'completed'
-    });
-    console.log(`[Twilio
-    ] Call ${callSid
-      } has been ended.`);
+    await twilioClient.calls(callSid).update({ status: 'completed' });
+    console.log(`[Twilio] Call ${callSid} has been ended.`);
   } catch (error) {
-    console.error(`[Twilio
-    ] Failed to hang up call ${callSid
-      }:`, error);
+    console.error(`[Twilio] Failed to hang up call ${callSid}:`, error);
   }
 }
+
+
 // Helper function to get signed URL for authenticated conversations
 async function getSignedUrl() {
   try {
     const response = await fetch(
-      `https: //api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${ELEVENLABS_AGENT_ID}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${ELEVENLABS_AGENT_ID}`,
       {
         method: "GET",
         headers: {
@@ -81,8 +77,7 @@ async function getSignedUrl() {
 
 
     if (!response.ok) {
-      throw new Error(`Failed to get signed URL: ${response.statusText
-        }`);
+      throw new Error(`Failed to get signed URL: ${response.statusText}`);
     }
 
 
@@ -93,16 +88,15 @@ async function getSignedUrl() {
     throw error;
   }
 }
+
+
 // Route to initiate outbound calls
 fastify.post("/outbound-call", async (request, reply) => {
-  const { number, prompt, first_message
-  } = request.body;
+  const { number, prompt, first_message } = request.body;
 
 
   if (!number) {
-    return reply.code(400).send({
-      error: "Phone number is required"
-    });
+    return reply.code(400).send({ error: "Phone number is required" });
   }
 
 
@@ -110,7 +104,7 @@ fastify.post("/outbound-call", async (request, reply) => {
     const call = await twilioClient.calls.create({
       from: TWILIO_PHONE_NUMBER,
       to: number,
-      url: `https: //${request.headers.host}/outbound-call-twiml?prompt=${encodeURIComponent(prompt)}&first_message=${encodeURIComponent(first_message)}`,
+      url: `https://${request.headers.host}/outbound-call-twiml?prompt=${encodeURIComponent(prompt)}&first_message=${encodeURIComponent(first_message)}`,
     });
 
 
@@ -156,9 +150,7 @@ fastify.all("/outbound-call-twiml", async (request, reply) => {
 fastify.register(async fastifyInstance => {
   fastifyInstance.get(
     "/outbound-media-stream",
-    {
-      websocket: true
-    },
+    { websocket: true },
     (ws, req) => {
       console.info("[Server] Twilio connected to outbound media stream");
 
@@ -232,27 +224,21 @@ fastify.register(async fastifyInstance => {
 
                 case "interruption":
                   if (streamSid) {
-                    ws.send(JSON.stringify({
-                      event: "clear", streamSid
-                    }));
+                    ws.send(JSON.stringify({ event: "clear", streamSid }));
                   }
                   break;
 
 
                 case "ping":
                   if (message.ping_event?.event_id) {
-                    elevenLabsWs.send(JSON.stringify({
-                      type: "pong", event_id: message.ping_event.event_id
-                    }));
+                    elevenLabsWs.send(JSON.stringify({ type: "pong", event_id: message.ping_event.event_id }));
                   }
                   break;
 
 
                 case "agent_response":
                   const responseText = message.agent_response_event?.agent_response || "";
-                  console.log(`[Twilio
-              ] Agent response: ${responseText
-                    }`);
+                  console.log(`[Twilio] Agent response: ${responseText}`);
                   if (responseText.toLowerCase().includes("goodbye")) {
                     console.log("[Benji] Detected goodbye. Hanging up call...");
                     hangUpCall(callSid);
@@ -261,16 +247,12 @@ fastify.register(async fastifyInstance => {
 
 
                 case "user_transcript":
-                  console.log(`[Twilio
-              ] User transcript: ${message.user_transcription_event?.user_transcript
-                    }`);
+                  console.log(`[Twilio] User transcript: ${message.user_transcription_event?.user_transcript}`);
                   break;
 
 
                 default:
-                  console.log(`[ElevenLabs
-              ] Unhandled message type: ${message.type
-                    }`);
+                  console.log(`[ElevenLabs] Unhandled message type: ${message.type}`);
               }
             } catch (error) {
               console.error("[ElevenLabs] Error processing message:", error);
@@ -284,10 +266,7 @@ fastify.register(async fastifyInstance => {
 
 
           elevenLabsWs.on("close", (code, reason) => {
-            console.log(`[ElevenLabs
-          ] Disconnected. Code: ${code
-              }, Reason: ${reason.toString()
-              }`);
+            console.log(`[ElevenLabs] Disconnected. Code: ${code}, Reason: ${reason.toString()}`);
           });
         } catch (error) {
           console.error("[ElevenLabs] Setup error:", error);
@@ -302,9 +281,7 @@ fastify.register(async fastifyInstance => {
         try {
           const msg = JSON.parse(message);
           if (msg.event !== "media") {
-            console.log(`[Twilio
-          ] Received event: ${msg.event
-              }`);
+            console.log(`[Twilio] Received event: ${msg.event}`);
           }
 
 
@@ -313,10 +290,7 @@ fastify.register(async fastifyInstance => {
               streamSid = msg.start.streamSid;
               callSid = msg.start.callSid;
               customParameters = msg.start.customParameters;
-              console.log(`[Twilio
-          ] Stream started - StreamSid: ${streamSid
-                }, CallSid: ${callSid
-                }`);
+              console.log(`[Twilio] Stream started - StreamSid: ${streamSid}, CallSid: ${callSid}`);
               console.log("[Twilio] Start parameters:", customParameters);
               break;
 
@@ -324,8 +298,7 @@ fastify.register(async fastifyInstance => {
             case "media":
               if (elevenLabsWs?.readyState === WebSocket.OPEN) {
                 const audioMessage = {
-                  user_audio_chunk: Buffer.from(msg.media.payload,
-                    "base64").toString("base64"),
+                  user_audio_chunk: Buffer.from(msg.media.payload, "base64").toString("base64"),
                 };
                 elevenLabsWs.send(JSON.stringify(audioMessage));
               }
@@ -333,9 +306,7 @@ fastify.register(async fastifyInstance => {
 
 
             case "stop":
-              console.log(`[Twilio
-          ] Stream ${streamSid
-                } ended`);
+              console.log(`[Twilio] Stream ${streamSid} ended`);
               if (elevenLabsWs?.readyState === WebSocket.OPEN) {
                 elevenLabsWs.close();
               }
@@ -343,9 +314,7 @@ fastify.register(async fastifyInstance => {
 
 
             default:
-              console.log(`[Twilio
-          ] Unhandled event: ${msg.event
-                }`);
+              console.log(`[Twilio] Unhandled event: ${msg.event}`);
           }
         } catch (error) {
           console.error("[Twilio] Error processing message:", error);
@@ -363,13 +332,10 @@ fastify.register(async fastifyInstance => {
   );
 });
 
-
-// Start the Fastify server
 fastify.listen({ port: PORT, host: '0.0.0.0' }, err => {
   if (err) {
     console.error("Error starting server:", err);
     process.exit(1);
   }
-  console.log(`[Server] Listening on port ${PORT}`);
+  console.log(`[Server] Listening on http://0.0.0.0:${PORT}`);
 });
-
