@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "@fastify/formbody": "^8.0.2",
+    "@fastify/websocket": "^11.0.2",
+    "dotenv": "^16.5.0",
+    "fastify": "^5.3.0",
+    "twilio": "^5.5.2",
+    "ws": "^8.18.1"
+  },
+  "type": "module",
+  "name": "vscode",
+  "version": "1.0.0",
+  "main": "call_n_hang_up.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
